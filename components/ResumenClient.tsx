@@ -126,7 +126,19 @@ export default function ResumenClient({
   }, [monthTransactions, playerMap, dollarRate]);
 
   const handleExportExcel = () => {
-    const dataToExport = monthTransactions.map((tx) => {
+    // Clonamos y ordenamos las transacciones: primero por nombre del jugador alfabéticamente, luego por fecha
+    const sortedTransactions = [...monthTransactions].sort((a, b) => {
+      const nameA = (playerMap.get(a.player_id)?.name || `ID #${a.player_id}`).toLowerCase();
+      const nameB = (playerMap.get(b.player_id)?.name || `ID #${b.player_id}`).toLowerCase();
+      const nameCompare = nameA.localeCompare(nameB, 'es', { numeric: true });
+      if (nameCompare !== 0) return nameCompare;
+
+      const dateA = a.date || '';
+      const dateB = b.date || '';
+      return dateA.localeCompare(dateB);
+    });
+
+    const dataToExport = sortedTransactions.map((tx) => {
       const playerName = playerMap.get(tx.player_id)?.name || `ID #${tx.player_id}`;
       const { amountARS, amountUSD, rate } = getTxAmounts(tx, dollarRate);
       const isG = isGastoTx(tx.type);
